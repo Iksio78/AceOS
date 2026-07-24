@@ -1,0 +1,81 @@
+# ==========================
+# Build
+# ==========================
+
+*.o
+*.obj
+*.elf
+*.bin
+*.iso
+*.img
+*.map
+*.lst
+*.log
+
+# ==========================
+# Visual Studio
+# ==========================
+
+.vs/
+Debug/
+Release/
+x64/
+x86/
+ipch/
+
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ==========================
+# CMake (na przyszłość)
+# ==========================
+
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile
+
+# ==========================
+# LLVM / Clang
+# ==========================
+
+*.pdb
+*.ilk
+
+# ==========================
+# Temporary
+# ==========================
+
+*.tmp
+*.temp
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# ==========================
+# QEMU
+# ==========================
+
+*.qcow2
+*.vdi
+*.vmdk
+
+# ==========================
+# Generated folders
+# ==========================
+
+build/
+out/
+dist/
+
+# ==========================
+# ISO staging
+# ==========================
+
+iso/
