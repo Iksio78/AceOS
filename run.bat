@@ -6,9 +6,7 @@ del *.o 2>nul
 del *.elf 2>nul
 del AceOS.iso 2>nul
 
-echo == Kompilacja boot.asm ==
-nasm -f elf32 boot.asm -o boot.o
-if errorlevel 1 goto error
+nasm -f elf64 kernel/entry.asm -o entry.o
 
 echo == Kompilacja kernel.cpp ==
 clang++ -target i386-unknown-none-elf ^
@@ -23,7 +21,7 @@ clang++ -target i386-unknown-none-elf ^
 if errorlevel 1 goto error
 
 echo == Kompilacja video.cpp ==
-clang++ -target i386-unknown-none-elf ^
+clang++ -target x86_64-unknown-none-elf ^
 -ffreestanding ^
 -fno-exceptions ^
 -fno-rtti ^
@@ -36,7 +34,7 @@ if errorlevel 1 goto error
 
 echo == Linkowanie ==
 ld.lld ^
--m elf_i386 ^
+-m elf_x86_64 ^
 -T linker.ld ^
 -o kernel.elf ^
 boot.o kernel.o video.o
@@ -48,7 +46,7 @@ rmdir /S /Q iso 2>nul
 
 mkdir iso
 mkdir iso\boot
-mkdir iso\boot\grub
+mkdir iso\boot\limine
 
 copy kernel.elf iso\boot\kernel.elf >nul
 

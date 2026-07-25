@@ -6,9 +6,13 @@ SECTIONS
 {
     . = 1M;
 
-    .text :
+    .limine_requests :
     {
         KEEP(*(.limine_requests))
+    }
+
+    .text :
+    {
         *(.text*)
     }
 
