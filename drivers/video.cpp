@@ -3,13 +3,15 @@
 namespace Video {
     unsigned int screen_width = 0;
     unsigned int screen_height = 0;
+    unsigned int pitch = 0;
     unsigned int* framebuffer = nullptr; // Prawdziwy ekran (hardware)
     unsigned int* backbuffer = nullptr;  // Nasz ukryty bufor w RAM
 
-    void Init(unsigned int* fb_address, unsigned int w, unsigned int h) {
+    void Init(unsigned int* fb_address, unsigned int w, unsigned int h, unsigned int p) {
         framebuffer = fb_address;
         screen_width = w;
         screen_height = h;
+        pitch = p;
 
         // Wskazujemy na bezpieczny adres w RAM (32 MB). QEMU ma 512 MB, wiêc to super bezpieczne miejsce.
         backbuffer = reinterpret_cast<unsigned int*>(0x02000000);
@@ -24,18 +26,24 @@ namespace Video {
     }
 
     void DrawPixel(unsigned int x, unsigned int y, unsigned int color) {
-        if (backbuffer == nullptr) return;
+        //if (backbuffer == nullptr) return;
         // Rysujemy do backbuffera!
         if (x >= screen_width || y >= screen_height) return;
 
-        backbuffer[y * screen_width + x] = color;
+        framebuffer[y * (pitch / 4) + x] = color;
     }
 
     void FillScreen(unsigned int color) {
-        if (backbuffer == nullptr) return;
         if (framebuffer == nullptr) return;
-        for (unsigned int i = 0; i < screen_width * screen_height; i++) {
-            backbuffer[i] = color;
+
+        unsigned int pixels_per_row = pitch / 4;
+
+        for (unsigned int y = 0; y < screen_height; y++)
+        {
+            for (unsigned int x = 0; x < screen_width; x++)
+            {
+                framebuffer[y * pixels_per_row + x] = color;
+            }
         }
     }
 

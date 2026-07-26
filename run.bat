@@ -1,85 +1,95 @@
 @echo off
 setlocal
 
-echo == Czyszczenie ==
-del *.o 2>nul
-del *.elf 2>nul
-del AceOS.iso 2>nul
+echo ===========================
+echo Building AceOS
+echo ===========================
 
-nasm -f elf64 kernel/entry.asm -o entry.o
+REM ===========================
+REM Clean
+REM ===========================
 
-echo == Kompilacja kernel.cpp ==
-clang++ -target i386-unknown-none-elf ^
+del /q *.o 2>nul
+del /q kernel.elf 2>nul
+del /q AceOS.iso 2>nul
+
+REM ===========================
+REM Assemble
+REM ===========================
+
+nasm -f elf64 kernel\entry.asm -o entry.o
+
+REM ===========================
+REM Compile
+REM ===========================
+
+clang++ ^
+-target x86_64-unknown-none-elf ^
 -ffreestanding ^
 -fno-exceptions ^
 -fno-rtti ^
+-m64 ^
 -std=c++20 ^
--Wall ^
--Wextra ^
 -c kernel\kernel.cpp ^
 -o kernel.o
-if errorlevel 1 goto error
 
-echo == Kompilacja video.cpp ==
-clang++ -target x86_64-unknown-none-elf ^
+clang++ ^
+-target x86_64-unknown-none-elf ^
 -ffreestanding ^
 -fno-exceptions ^
 -fno-rtti ^
+-m64 ^
 -std=c++20 ^
--Wall ^
--Wextra ^
 -c drivers\video.cpp ^
 -o video.o
-if errorlevel 1 goto error
 
-echo == Linkowanie ==
+REM ===========================
+REM Link
+REM ===========================
+
 ld.lld ^
 -m elf_x86_64 ^
 -T linker.ld ^
--o kernel.elf ^
-boot.o kernel.o video.o
-if errorlevel 1 goto error
+entry.o ^
+kernel.o ^
+video.o ^
+-o kernel.elf
 
-echo == Tworzenie struktury ISO ==
+REM ===========================
+REM Copy kernel
+REM ===========================
 
-rmdir /S /Q iso 2>nul
+copy /Y kernel.elf iso\kernel.elf
 
-mkdir iso
-mkdir iso\boot
-mkdir iso\boot\limine
+REM ===========================
+REM Build ISO
+REM ===========================
 
-copy kernel.elf iso\boot\kernel.elf >nul
+xorriso ^
+-as mkisofs ^
+-b boot/limine/limine-bios-cd.bin ^
+-no-emul-boot ^
+-boot-load-size 4 ^
+-boot-info-table ^
+--efi-boot boot/limine/limine-uefi-cd.bin ^
+-no-emul-boot ^
+-o AceOS.iso ^
+iso
 
-(
-echo set timeout=0
-echo set default=0
-echo.
-echo menuentry "AceOS" {
-echo     multiboot /boot/kernel.elf
-echo     boot
-echo }
-) > iso\boot\grub\grub.cfg
+REM ===========================
+REM Install Limine BIOS
+REM ===========================
 
-echo == Tworzenie obrazu ISO ==
-grub-mkrescue -o AceOS.iso iso
-if errorlevel 1 goto error
+iso\boot\limine\limine.exe bios-install AceOS.iso
 
-echo == Uruchamianie ==
-D:\QEMU\qemu-system-i386.exe ^
--m 512M ^
+REM ===========================
+REM Run
+REM ===========================
+
+qemu-system-x86_64 ^
 -cdrom AceOS.iso ^
--vga std ^
--display gtk ^
--full-screen ^
--no-reboot ^
--no-shutdown
+-m 512M ^
+-serial stdio ^
+-full-screen
 
-pause
-exit /b
-
-:error
-echo.
-echo ============================
-echo WYSTAPIL BLAD KOMPILACJI
-echo ============================
 pause

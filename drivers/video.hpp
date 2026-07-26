@@ -7,7 +7,7 @@ namespace Video {
     extern unsigned int screen_height;
 
     // Funkcja do ustawienia dynamicznego adresu przed rysowaniem
-    void Init(unsigned int* fb_address, unsigned int w, unsigned int h);
+    void Init(unsigned int* fb_address, unsigned int w, unsigned int h, unsigned int p);
     // konwertery formatów 
     unsigned int ConvertBGRA(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 0);
 
