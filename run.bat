@@ -2,64 +2,28 @@
 setlocal
 
 echo ===========================
-echo Building AceOS
+echo Building AceOS (Rust)
 echo ===========================
 
 REM ===========================
 REM Clean
 REM ===========================
 
-del /q *.o 2>nul
-del /q kernel.elf 2>nul
-del /q AceOS.iso 2>nul
+cargo clean
+if exist AceOS.iso del /q AceOS.iso
 
 REM ===========================
-REM Assemble
+REM Compile & Link via Cargo
 REM ===========================
 
-nasm -f elf64 kernel\entry.asm -o entry.o
-
-REM ===========================
-REM Compile
-REM ===========================
-
-clang++ ^
--target x86_64-unknown-none-elf ^
--ffreestanding ^
--fno-exceptions ^
--fno-rtti ^
--m64 ^
--std=c++20 ^
--c kernel\kernel.cpp ^
--o kernel.o
-
-clang++ ^
--target x86_64-unknown-none-elf ^
--ffreestanding ^
--fno-exceptions ^
--fno-rtti ^
--m64 ^
--std=c++20 ^
--c drivers\video.cpp ^
--o video.o
-
-REM ===========================
-REM Link
-REM ===========================
-
-ld.lld ^
--m elf_x86_64 ^
--T linker.ld ^
-entry.o ^
-kernel.o ^
-video.o ^
--o kernel.elf
+cargo build --release
+if errorlevel 1 goto error
 
 REM ===========================
 REM Copy kernel
 REM ===========================
 
-copy /Y kernel.elf iso\kernel.elf
+copy /Y target\x86_64-unknown-none\release\aceos iso\kernel.elf
 
 REM ===========================
 REM Build ISO
@@ -76,6 +40,8 @@ xorriso ^
 -o AceOS.iso ^
 iso
 
+if errorlevel 1 goto error
+
 REM ===========================
 REM Install Limine BIOS
 REM ===========================
@@ -83,13 +49,23 @@ REM ===========================
 iso\boot\limine\limine.exe bios-install AceOS.iso
 
 REM ===========================
-REM Run
+REM Run in QEMU
 REM ===========================
 
 qemu-system-x86_64 ^
 -cdrom AceOS.iso ^
 -m 512M ^
+-vga std ^
+-display sdl,gl=on ^
 -serial stdio ^
 -full-screen
 
+goto end
+
+:error
+echo ===========================
+echo Build failed!
+echo ===========================
+
+:end
 pause
