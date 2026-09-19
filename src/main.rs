@@ -1,14 +1,20 @@
 #![allow(non_snake_case)]
 #![no_std]
 #![no_main]
+#![feature(abi_x86_interrupt)]
 
 mod LFB;
 mod COM;
+mod gdt;
+mod idt;
+mod stubs;
+mod handlers;
+mod tss;
 
-use core::{fmt, panic::PanicInfo};
+use core::{arch::asm, fmt, panic::PanicInfo};
 use limine::request::FramebufferRequest;
 use spin::Mutex;
-use crate::LFB::{FramebufferWriter, lfb};
+use crate::{gdt::GdtEntry, LFB::{FramebufferWriter, lfb}};
 
 // Globalny, bezpieczny schowek na lfb dostępny z każdego miejsca w kodzie przez .lock()
 pub static GLOBAL_LFB: Mutex<Option<lfb>> = Mutex::new(None);
@@ -17,6 +23,8 @@ pub static GLOBAL_FBW: Mutex<Option<FramebufferWriter>> = Mutex::new(None);
 #[used]
 #[link_section = ".requests"]
 static FRAMEBUFFER_REQUEST: FramebufferRequest = FramebufferRequest::new();
+
+
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -31,8 +39,27 @@ pub extern "C" fn _start() -> ! {
 	println!("[ AceOS Kernel Starting... ]");
 	println!("######A######\n ####A A####\n  ##AAAAA##\n  #A     A#");
 
+    GLOBAL_FBW.lock()
+	.as_mut()
+	.unwrap()
+    .change_colors(0x0000FF00, 0x00000000);
 
-    loop {}
+    println!("keyboard doesn't work yet");
+
+    unsafe {
+    tss::init();
+    gdt::init();
+    idt::init();
+
+    core::arch::asm!(
+        "mov ax, 0x00",
+        "mov ds, ax",
+    );
+
+    println!("LTR OK");
+    }
+
+    loop{}
 }
 
 #[panic_handler]
