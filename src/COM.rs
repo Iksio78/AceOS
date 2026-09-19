@@ -17,7 +17,7 @@ pub unsafe fn outb(port: u16, value: u8) {
     );
 }
 
-/// Odczytuje bajt z portu I/O
+/// Odczytuje bajt z portu 
 pub unsafe fn inb(port: u16) -> u8 {
     let value: u8;
     asm!(
