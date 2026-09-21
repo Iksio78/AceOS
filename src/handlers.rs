@@ -58,12 +58,6 @@ pub extern "C" fn general_protection_handler(
     println!("Error code: {:#x}", error_code);
     println!("RIP: {:#x}", frame.instruction_pointer);
 
-    println!("Triggering INVALID OPCODE...");
-
-    unsafe {
-        core::arch::asm!("ud2");
-    }
-
     loop {
         unsafe {
             core::arch::asm!("hlt");

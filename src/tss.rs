@@ -36,6 +36,4 @@ pub unsafe fn init() {
         + core::mem::size_of::<Stack>() as u64;
 
     TSS.ist[0] = stack_top;
-
-    println!("DF stack: {:#x}", stack_top);
 }

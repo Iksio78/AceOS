@@ -54,7 +54,7 @@ REM ===========================
 
 qemu-system-x86_64 ^
 -cdrom AceOS.iso ^
--m 512M ^
+-m 2G ^
 -vga std ^
 -display sdl,gl=on ^
 -serial stdio ^

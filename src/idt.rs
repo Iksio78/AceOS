@@ -67,9 +67,9 @@ pub unsafe fn init() {
 
 	IDT[3] = IdtEntry::new(handler);
 
-	// IDT[6] = IdtEntry::new(
-    // invalid_opcode_stub as *const () as u64
-	// );
+	IDT[6] = IdtEntry::new(
+    invalid_opcode_stub as *const () as u64
+	);
 
 	IDT[13] = IdtEntry::new(
     general_protection_stub as *const () as u64
