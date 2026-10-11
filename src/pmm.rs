@@ -100,11 +100,18 @@ impl PMM{
 
         self.free_pages -= 1;
 
+		unsafe {
+			let addr = page * 4096 + HHDM::offset() as usize;
+			core::ptr::write_bytes(addr as *mut u8, 0, 4096);
+		}
+
         Some(page * 4096)
     }
 
     pub fn free_page(&mut self, address: usize) {
         let page = address / 4096;
+        println!("free_page: phys={:#x}", address);
+        println!("page number: {}", page / 4096);
 
         if self.pages.get(page) {
             self.pages.set(page, false);

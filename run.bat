@@ -9,14 +9,13 @@ REM ===========================
 REM Clean
 REM ===========================
 
-cargo clean
 if exist AceOS.iso del /q AceOS.iso
 
 REM ===========================
 REM Compile & Link via Cargo
 REM ===========================
 
-cargo build --release
+cargo build --release -j10 --timings
 if errorlevel 1 goto error
 
 REM ===========================
