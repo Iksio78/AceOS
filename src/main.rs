@@ -2,7 +2,10 @@
 #![no_std] 
 #![no_main] 
 #![feature(abi_x86_interrupt)] 
+#![feature(ptr_alignment_type)]
  
+extern crate alloc;
+
 mod LFB; 
 mod COM; 
 mod gdt; 
@@ -14,21 +17,24 @@ mod bitmap;
 mod HHDM; 
 mod PMM; 
 mod vmm; 
+mod kheap;
  
 use core::{arch::asm, fmt, panic::PanicInfo}; 
+use alloc::boxed::Box;
 use limine::request::{FramebufferRequest, MemmapRequest}; 
 use spin::Mutex; 
 use crate::{ 
-	LFB::{FramebufferWriter, lfb}, 
-	gdt::GdtEntry, 
-	vmm::VMM 
+	LFB::{FramebufferWriter, lfb}, gdt::GdtEntry, kheap::KernelHeap, vmm::VMM 
 }; 
  
 // Globalne schowki 
 pub static GLOBAL_LFB: Mutex<Option<lfb>> = Mutex::new(None); 
 pub static GLOBAL_FBW: Mutex<Option<FramebufferWriter>> = Mutex::new(None); 
 pub static GLOBAL_PMM: Mutex<Option<PMM::PMM>> = Mutex::new(None); 
-pub static GLOBAL_VMM: Mutex<Option<vmm::VMM>> = Mutex::new(None); 
+pub static GLOBAL_VMM: Mutex<Option<vmm::VMM>> = Mutex::new(None);
+
+#[global_allocator]
+pub static KERNEL_HEAP: KernelHeap = KernelHeap::new_uninitialized();
  
 const PAGE_SIZE: usize = 4096; 
 const PAGES_PER_GIB: usize = (1024 * 1024 * 1024) / PAGE_SIZE; 
@@ -73,6 +79,14 @@ pub extern "C" fn _start() -> ! {
 	// VMM 
 	let vmm_instance = VMM::init(); 
 	*GLOBAL_VMM.lock() = Some(vmm_instance); 
+
+	// kheap
+	let kheap_address = GLOBAL_PMM.lock().as_mut().unwrap().alloc_page().unwrap();
+
+	unsafe {
+		KERNEL_HEAP.heap.lock().init(kheap_address, 0x200000, 32);
+	}
+
  
 	println!("[ AceOS Kernel Starting... ]"); 
  
@@ -108,6 +122,14 @@ pub extern "C" fn _start() -> ! {
 	println!("keyboard doesn't work yet"); 
 	println!("Scheduler doesn't exist yet"); 
 	println!("Nvme Disk doesn't work yet"); 
+
+	let mut boxed_int: Box<i32> = Box::new(2137);
+
+	println!("{}", *boxed_int);
+
+	*boxed_int = 32;
+
+	println!("{}", *boxed_int);
  
 	loop {} 
 } 

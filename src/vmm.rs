@@ -174,10 +174,6 @@ impl VMM {
 		let pt = Self::phys_to_pt(pd.entries[pd_i].0 as usize);
 
 		pt.entries[pt_i] = PageTableEntry(phys as u64 | PRESENT | WRITABLE);
-
-		println!("pdpt[{}] = {:#x}", pdpt_i, pdpt.entries[pdpt_i].0);
-		println!("pd[{}]   = {:#x}", pd_i, pd.entries[pd_i].0);
-
 	}
 
 	// pub fn unmap_page(&mut self, virt: usize) -> Result<(), UnmapError>{
@@ -281,16 +277,9 @@ impl VMM {
 
 		pt.entries[pt_i] = PageTableEntry(0);
 
-		unsafe{
-			asm!("invlpg [{}]", in(reg) virt, options(nostack, preserves_flags));
-		}
-
 		if self.does_entry_exist(virt){
 			return Err(UnmapError::FatalError);
 		}
-
-		println!("pdpt[{}] = {:#x}", pdpt_i, pdpt.entries[pdpt_i].0);
-		println!("pd[{}]   = {:#x}", pd_i, pd.entries[pd_i].0);
 
 		Ok(())
 	}
