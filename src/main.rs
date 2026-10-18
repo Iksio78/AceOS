@@ -15,14 +15,17 @@ mod handlers;
 mod tss; 
 mod bitmap; 
 mod HHDM; 
-mod PMM; 
+mod pmm; 
 mod vmm; 
 mod kheap;
+mod ps2;
  
 use core::{arch::asm, fmt, panic::PanicInfo}; 
 use alloc::boxed::Box;
+use alloc::string::String;
 use limine::request::{FramebufferRequest, MemmapRequest}; 
 use spin::Mutex; 
+use ps2::read_key;
 use crate::{ 
 	LFB::{FramebufferWriter, lfb}, gdt::GdtEntry, kheap::KernelHeap, vmm::VMM 
 }; 
@@ -30,7 +33,7 @@ use crate::{
 // Globalne schowki 
 pub static GLOBAL_LFB: Mutex<Option<lfb>> = Mutex::new(None); 
 pub static GLOBAL_FBW: Mutex<Option<FramebufferWriter>> = Mutex::new(None); 
-pub static GLOBAL_PMM: Mutex<Option<PMM::PMM>> = Mutex::new(None); 
+pub static GLOBAL_PMM: Mutex<Option<pmm::PMM>> = Mutex::new(None); 
 pub static GLOBAL_VMM: Mutex<Option<vmm::VMM>> = Mutex::new(None);
 
 #[global_allocator]
@@ -69,7 +72,7 @@ pub extern "C" fn _start() -> ! {
 	*GLOBAL_FBW.lock() = Some(writer_instance); 
  
 	// PMM 
-	let pmm_instance = match PMM::PMM::init(&MEMMAP_REQUEST) { 
+	let pmm_instance = match pmm::PMM::init(&MEMMAP_REQUEST) { 
 		Some(pmm) => pmm, 
 		None => panic!("PMM initialization failed"), 
 	}; 
@@ -123,15 +126,9 @@ pub extern "C" fn _start() -> ! {
 	println!("Scheduler doesn't exist yet"); 
 	println!("Nvme Disk doesn't work yet"); 
 
-	let mut boxed_int: Box<i32> = Box::new(2137);
-
-	println!("{}", *boxed_int);
-
-	*boxed_int = 32;
-
-	println!("{}", *boxed_int);
+	print!("AceCore> ");
  
-	loop {} 
+	loop {read_key();} 
 } 
  
 #[panic_handler] 

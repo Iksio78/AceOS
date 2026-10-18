@@ -84,6 +84,37 @@ impl FramebufferWriter {
 
 	}
 
+    fn scroll(&mut self, lfb: &lfb) {
+        let pitch = lfb.pitch;
+        let height = lfb.height;
+
+        unsafe {
+            // Przesuwamy framebuffer w górę o 16 pikseli.
+            for y in 16..height {
+                for x in 0..pitch {
+                    let src = lfb.buffer_ptr
+                        .add(y * pitch + x)
+                        .read_volatile();
+
+                    lfb.buffer_ptr
+                        .add((y - 16) * pitch + x)
+                        .write_volatile(src);
+                }
+            }
+
+            // Czyścimy dolne 16 pikseli.
+            for y in height.saturating_sub(16)..height {
+                for x in 0..pitch {
+                    lfb.buffer_ptr
+                        .add(y * pitch + x)
+                        .write_volatile(self.bg_color);
+                }
+            }
+        }
+
+        self.cursor_y = self.cursor_y.saturating_sub(16);
+    }
+
 	/// Pobiera 16 bajtów definicji znaku 8x16 (uproszczony fallback dla nieznanych znaków)
     fn get_glyph(c: char) -> [u8; 16] {
         // W pełnej wersji podpiąłbyś tutaj pełną tablicę ASCII (np. PSF lub PC Screen Font).
@@ -920,8 +951,7 @@ impl fmt::Write for FramebufferWriter {
                     // Brak scrollowania na tym etapie: po dojściu do dołu
                     // zaczynamy ponownie od początku ekranu.
                     if self.cursor_y + 16 > lfb.height {
-                        self.cursor_x = 0;
-                        self.cursor_y = 0;
+                        self.scroll(&lfb);
                     }
                 }
             }
@@ -929,6 +959,7 @@ impl fmt::Write for FramebufferWriter {
         Ok(())
     }
 }
+
 
 unsafe impl Send for lfb {}
 unsafe impl Sync for lfb {}
