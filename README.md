@@ -78,3 +78,8 @@ QEMU for x86-64
  - [ ] User-space program execution
  - [ ] NVMe storage support
  - [ ] Linux compatibility layer
+
+
+## Screenshot
+
+![AceOS running in QEMU](docs/screenshot.png)
