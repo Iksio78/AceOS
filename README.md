@@ -72,3 +72,9 @@ xorriso
 Limine BIOS installation utility
 
 QEMU for x86-64
+
+## Goals
+ - [ ] PS/2 and USB keyboard support
+ - [ ] User-space program execution
+ - [ ] NVMe storage support
+ - [ ] Linux compatibility layer
