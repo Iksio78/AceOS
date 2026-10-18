@@ -82,4 +82,4 @@ QEMU for x86-64
 
 ## Screenshot
 
-![AceOS running in QEMU](docs/screenshot.png)
+![AceOS running in QEMU](docs/screenshot_2026-10-18.png)
